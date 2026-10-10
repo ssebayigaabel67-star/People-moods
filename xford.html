@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>XFORD</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#2de2ff;--yellow:#ffd23f;--ink:#e8fbff;--dim:#6fa3b3;--panel:#04101a;--red:#ff4d6d}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:var(--ink);font-family:'Chakra Petch',system-ui,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.screen{display:none;position:fixed;inset:0;flex-direction:column;background:#000}
+.screen.on{display:flex}
+.frame{border:2px solid var(--blue);box-shadow:0 0 14px var(--blue),inset 0 0 14px rgba(45,226,255,.2);border-radius:6px;background:var(--panel);padding:14px}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--blue);background:#000}
+.bar h1{font-size:16px;margin:0;flex:1;letter-spacing:.08em;color:var(--blue);text-shadow:0 0 8px var(--blue)}
+.btn{background:transparent;border:1px solid var(--blue);color:var(--blue);padding:8px 12px;border-radius:4px;cursor:pointer;box-shadow:0 0 6px rgba(45,226,255,.5);display:inline-block}
+.btn.solid{background:var(--blue);color:#001018;font-weight:700}
+.ib{background:none;border:none;color:var(--blue);font-size:20px;cursor:pointer;padding:4px 8px}
+input,select,textarea{background:#000;border:1px solid var(--dim);border-radius:4px;padding:9px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 8px var(--blue)}
+label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
+.center{margin:auto;width:min(420px,92vw)}
+.muted{color:var(--dim);font-size:13px}
+.err{color:var(--red);font-size:13px;min-height:18px;margin-top:8px}
+.wrap{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-content:start}
+@media (max-width:640px){.wrap{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{border:1px solid var(--blue);box-shadow:0 0 8px rgba(45,226,255,.5);border-radius:6px;padding:14px 10px;text-align:center;cursor:pointer;min-height:90px;background:#000}
+.tile span{font-size:26px}
+.tile b{display:block;font-size:14px;margin-top:6px}
+.av{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);box-shadow:0 0 8px var(--blue)}
+.card{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--blue);border-radius:6px;margin-bottom:8px}
+.xpbar{height:10px;border:1px solid var(--blue);border-radius:6px;overflow:hidden}
+.xpbar i{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue)}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:10px 12px;background:#000;-webkit-user-select:none;user-select:none}
+.bubble{max-width:78%;padding:8px 11px;border-radius:12px;background:var(--yellow);color:#000;margin:6px 0;word-wrap:break-word;user-select:text}
+.mine{align-self:flex-end;border-bottom-right-radius:3px}
+.theirs{align-self:flex-start;border-bottom-left-radius:3px}
+.who{font-size:12px;font-weight:700;margin-bottom:2px;display:flex;gap:4px;align-items:center}
+.bubble img,.bubble video{max-width:100%;border-radius:6px;display:block}
+.bottom{display:flex;gap:6px;align-items:center;padding:8px;border-top:1px solid var(--blue);background:#000}
+.bottom input{flex:1;border-radius:20px}
+.round{width:40px;height:40px;border-radius:50%;border:1px solid var(--blue);background:#000;color:var(--blue);cursor:pointer;flex:none;font-size:16px}
+#mic.rec{background:var(--red);border-color:var(--red);color:#fff}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:min(300px,85vw);background:#02080f;border-right:2px solid var(--blue);box-shadow:0 0 18px var(--blue);transform:translateX(-105%);transition:transform .25s;z-index:50;overflow-y:auto;padding:14px}
+.drawer.on{transform:none}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:40}
+.scrim.on{display:block}
+.sec{margin:14px 0 6px;font-size:12px;color:var(--dim);letter-spacing:.1em}
+.row{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid #123;border-radius:6px;margin:6px 0;cursor:pointer}
+.row:hover{border-color:var(--blue)}
+.badge{background:var(--red);color:#fff;border-radius:10px;padding:0 7px;font-size:12px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:60}
+.overlay.on{display:flex}
+.modal{width:min(400px,92vw);max-height:86vh;overflow-y:auto;padding:16px;background:#02080f;border:2px solid var(--blue);box-shadow:0 0 18px var(--blue);border-radius:8px}
+.pop{position:fixed;background:#02080f;border:1px solid var(--blue);box-shadow:0 0 12px var(--blue);border-radius:8px;z-index:70;min-width:200px;display:none}
+.pop.on{display:block}
+.pop button{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 14px;color:var(--ink);cursor:pointer}
+.pop button:hover{background:#06222e}
+.pop button.danger{color:var(--red)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000;border:1px solid var(--blue);padding:9px 14px;border-radius:6px;display:none;z-index:90;box-shadow:0 0 10px var(--blue);max-width:90vw}
+.toast.on{display:block}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs .btn{flex:1}
+.tabs .btn.on{background:var(--blue);color:#001018}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="screen on">
+  <div class="frame center" style="margin-top:auto;margin-bottom:auto">
+    <h1 style="color:var(--blue);letter-spacing:.1em;text-shadow:0 0 8px var(--blue);font-size:18px;margin:0 0 10px">XFORD · SYSTEM LOGIN</h1>
+    <label>Email or username</label>
+    <input id="lEmail" autocomplete="username">
+    <label>Password</label>
+    <input id="lPass" type="password" autocomplete="current-password">
+    <button class="btn solid" id="lBtn" style="width:100%;margin-top:16px">Enter</button>
+    <div class="err" id="lErr"></div>
+    <p class="muted">New here? Any new email and password creates your account. Demo accounts: nova@demo, kairo@demo, mira@demo (password: demo).</p>
+  </div>
+</div>
+
+<!-- PROFILE SETUP (mandatory) -->
+<div id="setup" class="screen">
+  <div class="bar">
+    <button class="ib hidden" id="sBack">‹</button>
+    <h1>SYSTEM HOME - PROFILE SETUP</h1>
+    <span class="clock muted"></span>
+  </div>
+  <div class="wrap" style="grid-template-columns:1fr">
+    <div class="frame center">
+      <div style="text-align:center">
+        <img id="sPrev" alt="" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);box-shadow:0 0 10px var(--blue);visibility:hidden">
+        <br>
+        <span class="btn" style="margin-top:8px;cursor:pointer">Upload picture<input id="sPic" type="file" accept="image/*" hidden></span>
+      </div>
+      <label>Display name / username</label><input id="sName" maxlength="24">
+      <label>Bio / About me</label><textarea id="sBio" rows="3" maxlength="160"></textarea>
+      <label>Age</label><input id="sAge" type="number" min="1" max="120">
+      <label>Gender</label>
+      <select id="sGender"><option value="">Choose</option><option>Male</option><option>Female</option><option>Other</option></select>
+      <label>Location</label><input id="sLoc">
+      <label>Mood / status</label><input id="sMood" maxlength="40">
+      <button class="btn solid" id="sSave" style="width:100%;margin-top:16px">Save profile</button>
+      <div class="err" id="sErr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM HOME (profile) -->
+<div id="home" class="screen">
+  <div class="bar">
+    <button class="ib menuB">≡</button>
+    <h1>SYSTEM HOME - PROFILE</h1>
+    <span class="clock" style="color:var(--blue)"></span>
+  </div>
+  <div class="wrap">
+    <div id="homeCard"></div>
+    <div id="homeTiles" class="grid"></div>
+  </div>
+</div>
+
+<!-- CHAT (general, staff room, private) -->
+<div id="chat" class="screen">
+  <div class="bar">
+    <button class="ib" id="backBtn">‹</button>
+    <h1 id="roomName">XFORD</h1>
+    <button class="ib" id="menuBtn">⋮</button>
+    <button class="ib menuB">≡</button>
+  </div>
+  <div id="msgs" class="msgs"></div>
+  <div class="bottom">
+    <button class="round" id="camBtn" title="Photo or video">📷</button>
+    <input id="cam" type="file" accept="image/*,video/*" hidden>
+    <button class="round" id="mic" title="Hold to record a voice note">🎤</button>
+    <input id="inp" placeholder="Message" autocomplete="off">
+    <button class="round" id="callBtn" title="Voice chat">📞</button>
+    <button class="round" id="sendBtn" style="background:var(--blue);color:#001018">➤</button>
+  </div>
+</div>
+
+<!-- OVERLAYS -->
+<div id="modal" class="overlay">
+  <div class="modal">
+    <div style="display:flex;align-items:center;margin-bottom:10px">
+      <h2 id="mTitle" style="flex:1;margin:0;font-size:16px;color:var(--blue)"></h2>
+      <button class="ib" id="mClose">✕</button>
+    </div>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<div id="call" class="overlay">
+  <div class="modal" style="text-align:center">
+    <h2 style="color:var(--blue);font-size:16px">VOICE CHAT</h2>
+    <p id="callLimit" class="muted"></p>
+    <div id="callTime" style="font-size:48px;color:var(--blue);text-shadow:0 0 10px var(--blue)">00:00</div>
+    <p class="muted">Demo: the call timer, cutoff and cooldown are real. Audio needs a server.</p>
+    <button class="btn" id="endCallBtn" style="width:100%;color:var(--red);border-color:var(--red)">End call</button>
+  </div>
+</div>
+
+<div id="live" class="overlay">
+  <div class="modal">
+    <div style="display:flex;align-items:center;margin-bottom:10px">
+      <h2 style="flex:1;margin:0;font-size:16px;color:var(--blue)">LIVE</h2>
+      <button class="ib" id="liveClose">✕</button>
+    </div>
+    <div id="liveBody"></div>
+  </div>
+</div>
+
+<div id="pop" class="pop"></div>
+<div id="toast" class="toast"></div>
+<div id="scrim" class="scrim"></div>
+<div id="drawer" class="drawer"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const KEY='xford_db', SESS='xford_session', OWNER='okwyp98@gmail.com';
+// Placeholder economy values: change these to your real numbers.
+const CFG={RANK_BUY:2000,MIN_COST:50,CALL_NORMAL:300,CALL_COOLDOWN:600,ML_XP:1000000,XP_MSG:5,XP_VID:5};
+const RANKS=[['New',0,'👋'],['Friendly',41,'✝️'],['Employee',4000,'❌'],['Boxer',8000,'🥊'],['Captain',16000,'💀'],['Leader',50000,'🔫'],['Moderator Light',0,'📦'],['Moderator',0,'🔒'],['Helper',0,'⛓️'],['Owner',0,'👑']];
+// Power tiers (full list still to be confirmed by you). Index = rank index.
+const POWER_LIST=[[6,'Moderator Light','Mute, delete messages'],[7,'Moderator','Mute, delete messages, ban'],[8,'Helper','All powers: mute, delete, ban, kick'],[9,'Owner','All powers, plus manage roles and reports']];
+const CAN={mute:6,delete:6,ban:7,kick:8,manage:9};
+const ROLE_NAME={mod_light:'Moderator Light',moderator:'Moderator',helper:'Helper'};
+
+let DB, ME=null, ROOM='general', MEDIA={}, PIC=null, CALL=null, LSTREAM=null, REC=null, RCH=[], RS=0, PT=null, PM=null, OWN_TAB='rep';
+
+const me=()=>DB.users[ME];
+const nm=e=>(DB.users[e]&&DB.users[e].profile&&DB.users[e].profile.name)||e;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=s=>{s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');};
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const pkey=(a,b)=>'p:'+[a,b].sort().join('|');
+const partOf=(r,e)=>r.startsWith('p:')&&r.slice(2).split('|').includes(e);
+const otherOf=r=>r.slice(2).split('|').find(e=>e!==ME);
+const roomTitle=r=>r==='general'?'XFORD':r==='staff'?'Staff Room':nm(otherOf(r));
+const lvl=u=>Math.floor((u.xp||0)/2000)+1;
+const isStaff=u=>rankIdx(u)>=6;
+const can=p=>rankIdx(me())>=CAN[p];
+const avatar=n=>'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#001a24"/><rect x="2" y="2" width="92" height="92" fill="none" stroke="#2de2ff" stroke-width="3"/><text x="48" y="64" font-size="42" text-anchor="middle" fill="#2de2ff" font-family="sans-serif">${n.charAt(0).toUpperCase()}</text></svg>`);
+const uidOf=e=>{let h=0;for(const c of e)h=(h*31+c.charCodeAt(0))%1000000;return 'XF-'+String(h).padStart(6,'0');};
+
+function rankIdx(u){
+  if(!u)return 0;
+  if(u.email===OWNER)return 9;
+  let r=0;for(let i=0;i<=5;i++)if((u.xp||0)>=RANKS[i][1])r=i;
+  r=Math.max(r,u.bought||0);
+  if(u.role==='helper')r=Math.max(r,8);
+  else if(u.role==='moderator')r=Math.max(r,7);
+  else if(u.role==='mod_light'&&(u.xp||0)>=CFG.ML_XP)r=Math.max(r,6);
+  return r;
+}
+function stats(u){
+  const p=u.profile||{};
+  const filled=['name','bio','age','gender','loc','mood','pic'].filter(k=>p[k]).length;
+  return{status:Math.round(filled/7*100),coll:Math.min(100,Math.floor((u.xp||0)/500)),stamina:Math.max(10,100-(u.calls||0)*10),power:rankIdx(u)*100+lvl(u)*10};
+}
+function newUser(e,pw){return{email:e,pw,xp:0,bal:0,callSecs:0,calls:0,cool:0,bought:0,role:'',seen:{},done:0,profile:{},joined:Date.now()};}
+
+function fresh(){return{users:{},msgs:[],reports:[],apps:[],ann:[{id:uid(),t:'Welcome to XFORD. Keep chat respectful.',ts:Date.now()}],live:null};}
+function add(room,from,kind,text,extra){
+  const m=Object.assign({id:uid(),room,from,kind,text:text||'',ts:Date.now()},extra||{});
+  DB.msgs.push(m);if(DB.msgs.length>500)DB.msgs.splice(0,DB.msgs.length-500);return m;
+}
+function seed(){
+  [['nova@demo','Nova',4100,'Quiet, always online.','Lagos','Focused'],
+   ['kairo@demo','Kairo',8200,'Never misses a round.','Berlin','Hyped'],
+   ['mira@demo','Mira',120,'First week in XFORD.','Manila','Curious']]
+  .forEach(([e,n,xp,bio,loc,mood])=>{
+    if(DB.users[e])return;
+    DB.users[e]=Object.assign(newUser(e,'demo'),{demo:1,xp,bal:50,done:1,profile:{name:n,bio,age:24,gender:'Other',loc,mood,pic:avatar(n)}});
+  });
+  if(!DB.msgs.length){add('general','nova@demo','text','Morning everyone 👋');add('general','kairo@demo','text','Who is up for a call later?');}
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){toast('Storage is full. Some media will not be kept after reload.');}}
+function load(){let d=null;try{d=JSON.parse(localStorage.getItem(KEY));}catch(e){}DB=(d&&d.users)?d:fresh();seed();save();}
+
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2400);}
+function clock(){const t=new Date().toTimeString().slice(0,5);$$('.clock').forEach(c=>c.textContent=t);}
+
+// ---------- screens & routing ----------
+function show(id){
+  $$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+  closeDrawer();
+  if(id==='home')renderHome();
+}
+function route(){
+  if(!ME){show('login');return;}
+  const u=me();
+  if(!u.done){show('setup');fillSetup();return;}
+  goRoom('general');
+}
+function doLogin(){
+  const e=$('#lEmail').value.trim().toLowerCase(), p=$('#lPass').value;
+  if(!e||p.length<4){$('#lErr').textContent='Enter an email or username and a password of 4+ characters.';return;}
+  let u=DB.users[e];
+  if(u){
+    if(u.pw!==p){$('#lErr').textContent='Wrong password.';return;}
+    if(u.banned){$('#lErr').textContent='This account is banned.';return;}
+  }else{u=DB.users[e]=newUser(e,p);}
+  ME=e;localStorage.setItem(SESS,e);u.kicked=false;save();
+  $('#lPass').value='';$('#lErr').textContent='';
+  route();
+}
+function logout(msg){
+  ME=null;localStorage.removeItem(SESS);stopCam();closeDrawer();closeModal();
+  route();
+  $('#lErr').textContent=msg||'';
+}
+function fillSetup(){
+  const u=me(),p=u.profile||{};
+  $('#sName').value=p.name||'';$('#sBio').value=p.bio||'';$('#sAge').value=p.age||'';
+  $('#sGender').value=p.gender||'';$('#sLoc').value=p.loc||'';$('#sMood').value=p.mood||'';
+  PIC=p.pic||null;$('#sPrev').src=PIC||'';$('#sPrev').style.visibility=PIC?'visible':'hidden';
+  $('#sBack').classList.toggle('hidden',!u.done);$('#sErr').textContent='';
+}
+function saveSetup(){
+  const p={name:$('#sName').value.trim(),bio:$('#sBio').value.trim(),age:+$('#sAge').value,gender:$('#sGender').value,loc:$('#sLoc').value.trim(),mood:$('#sMood').value.trim(),pic:PIC};
+  const miss=[];
+  if(!p.pic)miss.push('profile picture');if(!p.name)miss.push('display name');if(!p.bio)miss.push('bio');
+  if(!(p.age>=1&&p.age<=120))miss.push('age');if(!p.gender)miss.push('gender');if(!p.loc)miss.push('location');if(!p.mood)miss.push('mood');
+  if(miss.length){$('#sErr').textContent='Still required: '+miss.join(', ');return;}
+  const u=me(),was=u.done;u.profile=p;u.done=1;save();toast('Profile saved');
+  if(was)show('home');else goRoom('general');
+}
+
+// ---------- rooms & chat ----------
+function goRoom(room){
+  if(room==='staff'&&!isStaff(me())){toast('Staff only');return;}
+  ROOM=room;markSeen(room);show('chat');renderChat();
+}
+function markSeen(r){const u=me();if(!u)return;u.seen=u.seen||{};u.seen[r]=Date.now();save();}
+function privRooms(){const s=new Set();DB.msgs.forEach(m=>{if(partOf(m.room,ME))s.add(m.room);});return[...s];}
+function unread(){
+  const u=me();
+  return privRooms().filter(r=>{const last=DB.msgs.filter(m=>m.room===r).pop();return last&&last.from!==ME&&last.ts>((u.seen||{})[r]||0);}).length;
+}
+function bubble(m){
+  const u=DB.users[m.from],mine=m.from===ME,idx=rankIdx(u);let b='';
+  if(m.kind==='text')b=esc(m.text);
+  else if(m.kind==='image'){const src=MEDIA[m.id]||m.data;b=src?`<img src="${src}" alt="photo">`:'<i>Photo (not kept after reload)</i>';}
+  else if(m.kind==='video'){b=MEDIA[m.id]?`<video controls playsinline src="${MEDIA[m.id]}"></video>`:'<i>🎬 Video (not kept after reload)</i>';}
+  else if(m.kind==='voice'){b=(MEDIA[m.id]?`<audio controls src="${MEDIA[m.id]}"></audio><br>`:'')+'🎙 Voice note '+fmt(m.dur||0)+(MEDIA[m.id]?'':' <i>(not kept after reload)</i>');}
+  return `<div class="bubble ${mine?'mine':'theirs'}" data-id="${m.id}"><div class="who"><span>${RANKS[idx][2]}</span>${esc(nm(m.from))}</div>${b}</div>`;
+}
+function renderChat(){
+  $('#roomName').textContent=roomTitle(ROOM);
+  const list=DB.msgs.filter(m=>m.room===ROOM);
+  const box=$('#msgs');
+  box.innerHTML=list.length?list.map(bubble).join(''):'<p class="muted" style="text-align:center;margin:auto">No messages yet. Say hello.</p>';
+  box.scrollTop=box.scrollHeight;
+}
+function canPost(){
+  const u=me();
+  if(u.muted){toast('You are muted by staff.');return false;}
+  if(ROOM==='staff'&&!isStaff(u)){toast('Staff only');return false;}
+  return true;
+}
+function earn(n){
+  const u=me(),before=rankIdx(u);
+  u.xp=(u.xp||0)+n;u.bal=(u.bal||0)+n;save();
+  const after=rankIdx(u);
+  if(after>before)toast('Rank up: '+RANKS[after][0]+' '+RANKS[after][2]);
+}
+function send(){
+  const i=$('#inp'),t=i.value.trim();
+  if(!t||!canPost())return;
+  add(ROOM,ME,'text',t);earn(CFG.XP_MSG);
+  i.value='';save();renderChat();
+}
+$('#cam')&&null;
+function msgMenu(id,x,y){
+  const m=DB.msgs.find(z=>z.id===id);if(!m)return;
+  const items=[];const u=DB.users[m.from];
+  if(m.from!==ME){
+    items.push(['View Profile',()=>viewProfile(m.from)]);
+    items.push(['Private Chat',()=>goRoom(pkey(ME,m.from))]);
+    items.push(['Report',()=>report(m)]);
+    if(rankIdx(me())>rankIdx(u)){
+      if(can('mute'))items.push([u.muted?'Unmute':'Mute',()=>modAct(m,'mute')]);
+      if(can('delete'))items.push(['Delete message',()=>delMsg(m),1]);
+      if(can('ban'))items.push(['Ban',()=>modAct(m,'ban'),1]);
+      if(can('kick'))items.push(['Kick',()=>modAct(m,'kick'),1]);
+    }
+  }else items.push(['Delete my message',()=>delMsg(m),1]);
+  showPop(x,y,items);
+}
+function modAct(m,a){
+  const u=DB.users[m.from];
+  if(a==='mute'){u.muted=!u.muted;toast(u.muted?'Muted':'Unmuted');}
+  if(a==='ban'){u.banned=true;toast(nm(m.from)+' banned');}
+  if(a==='kick'){u.kicked=true;toast(nm(m.from)+' removed from session');}
+  save();renderChat();
+}
+function delMsg(m){DB.msgs=DB.msgs.filter(x=>x.id!==m.id);delete MEDIA[m.id];save();renderChat();}
+function report(m){
+  DB.reports.unshift({id:uid(),msgId:m.id,text:m.kind==='text'?m.text:'['+m.kind+']',target:m.from,reporter:ME,ts:Date.now()});
+  save();toast('Report sent to the owner.');
+}
+function showPop(x,y,items){
+  const p=$('#pop');
+  p.innerHTML=items.map((it,i)=>`<button class="${it[2]?'danger':''}" data-i="${i}">${esc(it[0])}</button>`).join('');
+  p.classList.add('on');
+  const w=p.offsetWidth,h=p.offsetHeight;
+  p.style.left=Math.max(8,Math.min(x,innerWidth-w-8))+'px';
+  p.style.top=Math.max(8,Math.min(y,innerHeight-h-8))+'px';
+  p.onclick=ev=>{const b=ev.target.closest('button');if(!b)return;hidePop();items[+b.dataset.i][1]();};
+}
+function hidePop(){$('#pop').classList.remove('on');}
+
+// ---------- profile card / home ----------
+function card(e){
+  const u=DB.users[e],p=u.profile,idx=rankIdx(u),r=RANKS[idx],lv=lvl(u),nx=lv*2000,s=stats(u);
+  return `<div class="frame"><div style="display:flex;gap:12px;align-items:center"><img src="${p.pic}" alt="" style="width:84px;height:84px;border-radius:50%;border:2px solid var(--blue);box-shadow:0 0 10px var(--blue);object-fit:cover"><div style="min-width:0"><div style="font-size:18px;font-weight:700">${esc(p.name)}</div><div class="muted">ID ${uidOf(e)}</div><div>Lv ${lv} · ${r[2]} ${esc(r[0])}</div></div></div>
+  <div class="xpbar" style="margin:10px 0"><i style="width:${((u.xp||0)%2000)/20}%"></i></div><div class="muted">XP ${u.xp||0}/${nx}</div>
+  <div class="grid" style="margin-top:10px;font-size:13px"><div>Status ${s.status}%</div><div>Collection ${s.coll}%</div><div>Stamina ${s.stamina}</div><div>Power ${s.power}</div></div>
+  <div class="sec">DETAILS</div><div style="font-size:14px"><b>Bio:</b> ${esc(p.bio)}<br><b>Age:</b> ${esc(p.age)} · <b>Gender:</b> ${esc(p.gender)}<br><b>Location:</b> ${esc(p.loc)}<br><b>Mood:</b> ${esc(p.mood)}</div></div>`;
+}
+function renderHome(){
+  const u=me();if(!u)return;
+  $('#homeCard').innerHTML=card(ME)+`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn solid" id="editBtn" style="flex:1">Edit details</button><button class="btn" id="homeChat" style="flex:1">Open chat</button></div>`;
+  const unr=unread();
+  $('#homeTiles').innerHTML=[['💬','Chat','chat'],['✉','Private Message','pm',unr],['📢','System Announcement','ann'],['🗡','Inventory / Weapons','inv'],['🎯','Task / Mission','task'],['🎒','Backpack / Storage','bag']]
+    .map(([ic,lab,k,b])=>`<div class="tile" data-tile="${k}"><span>${ic}</span><b>${lab}</b>${b?`<div class="badge" style="display:inline-block;margin-top:4px">${b}</div>`:''}</div>`).join('');
+}
+function privHTML(){
+  const rooms=privRooms();
+  return rooms.length?rooms.map(r=>`<div class="row" data-open="${esc(r)}">✉ <span>${esc(roomTitle(r))}</span></div>`).join(''):'<p class="muted">No private chats yet. Long-press a message in XFORD to start one.</p>';
+}
+function annHTML(){return DB.ann.map(a=>`<div class="row" style="display:block"><b class="muted">${new Date(a.ts).toLocaleDateString()}</b><div>${esc(a.t)}</div></div>`).join('');}
+function invHTML(){
+  const u=me(),idx=rankIdx(u),pw=POWER_LIST.filter(p=>p[0]<=idx).pop();
+  return `<div class="row">${RANKS[idx][2]} Rank: ${RANKS[idx][0]}</div><div class="row">📞 Call time bought: ${fmt(u.callSecs||0)}</div><div class="row">🛡 Powers: ${pw?esc(pw[2]):'None'}</div>`;
+}
+function taskHTML(){
+  const u=me();
+  const t=[['Set up your profile',u.done],['Send your first message (+5 XP)',DB.msgs.some(m=>m.from===ME&&m.kind==='text')],['Post a video (+5 XP)',DB.msgs.some(m=>m.from===ME&&m.kind==='video')],['Reach Employee rank (4,000 XP)',(u.xp||0)>=4000],['Start a private chat',privRooms().length>0]];
+  return t.map(([l,d])=>`<div class="row">${d?'✔':'☐'} <span>${l}</span></div>`).join('');
+}
+function bagHTML(){
+  const u=me();
+  return `<div class="row">💰 XP balance: <b>${u.bal||0}</b></div><div class="row">📞 Call time bought: ${fmt(u.callSecs||0)}</div>
+  <button class="btn solid" data-x="buyRank" style="width:100%;margin-top:8px">Buy next rank (${CFG.RANK_BUY} XP)</button>
+  <button class="btn" data-x="buyMin" style="width:100%;margin-top:8px">Buy 1 call minute (${CFG.MIN_COST} XP)</button>
+  <p class="muted">Buy rank: one rank above yours. Leader and up need owner approval. Bought call time lets you call longer.</p>`;
+}
+function buyRank(){
+  const u=me(),r=rankIdx(u);
+  if(r>=5){toast('Next rank needs owner approval.');return;}
+  if((u.bal||0)<CFG.RANK_BUY){toast('Not enough XP. You need '+CFG.RANK_BUY+'.');return;}
+  u.bal-=CFG.RANK_BUY;u.bought=r+1;save();toast('Rank up: '+RANKS[r+1][0]);$('#mBody').innerHTML=bagHTML();
+}
+function buyMin(){
+  const u=me();
+  if((u.bal||0)<CFG.MIN_COST){toast('Not enough XP. You need '+CFG.MIN_COST+'.');return;}
+  u.bal-=CFG.MIN_COST;u.callSecs=(u.callSecs||0)+60;save();toast('1 call minute added');$('#mBody').innerHTML=bagHTML();
+}
+function groupInfoHTML(){
+  return `<p class="muted">General Group Chat for everybody. Tap a member to view their profile.</p>`+Object.values(DB.users).map(u=>`<div class="row" data-view="${esc(u.email)}">${RANKS[rankIdx(u)][2]} <span>${esc(nm(u.email))}</span><span class="muted" style="margin-left:auto">${RANKS[rankIdx(u)][0]}</span></div>`).join('');
+}
+function openModal(title,html){$('#mTitle').textContent=title;$('#mBody').innerHTML=html;$('#modal').classList.add('on');}
+function closeModal(){$('#modal').classList.remove('on');}
+function viewProfile(e){
+  if(!DB.users[e])return;
+  openModal('SYSTEM HOME - PROFILE',card(e)+(e!==ME?`<button class="btn solid" data-x="pm" data-k="${esc(e)}" style="width:100%;margin-top:10px">Private Chat</button>`:''));
+}
+
+// ---------- drawer ----------
+function openDrawer(){$('#drawer').classList.add('on');$('#scrim').classList.add('on');renderDrawer();}
+function closeDrawer(){$('#drawer').classList.remove('on');$('#scrim').classList.remove('on');}
+function renderDrawer(){
+  const u=me();if(!u)return;
+  const idx=rankIdx(u),r=RANKS[idx],priv=privRooms();
+  $('#drawer').innerHTML=`
+  <div class="card"><img class="av" src="${u.profile.pic}" alt=""><div style="min-width:0"><b>${esc(u.profile.name)}</b><div class="muted">${r[2]} ${r[0]} · XP ${u.xp||0}</div></div></div>
+  <div class="sec">GROUPS</div>
+  <div class="row" data-go="general">💬 <span>XFORD (General Group Chat)</span></div>
+  ${isStaff(u)?'<div class="row" data-go="staff">🛡 <span>Staff Room</span></div>':''}
+  <div class="sec">PRIVATE CHATS</div>
+  ${priv.length?priv.map(p=>`<div class="row" data-go="${esc(p)}">✉ <span>${esc(roomTitle(p))}</span></div>`).join(''):'<div class="muted">No private chats yet.</div>'}
+  <div class="sec">LIVE</div>
+  <div class="row" data-act="live">📡 <span>${DB.live?'Join LIVE':'LIVE'}</span></div>
+  <div class="sec">POWERS</div>
+  ${POWER_LIST.map(([i,n,d])=>`<div class="muted" style="color:${i===idx?'var(--blue)':''};margin:4px 0">${RANKS[i][2]} ${n}: ${d}</div>`).join('')}
+  <div class="muted" style="font-size:11px">Full power list to be confirmed.</div>
+  ${isStaff(u)?'':'<div class="sec">APPLY FOR STAFF</div>'+Object.entries(ROLE_NAME).map(([k,n])=>`<div class="row" data-apply="${k}">📝 <span>${n}${k==='mod_light'?' (needs 1,000,000 XP)':''}</span></div>`).join('')}
+  ${ME===OWNER?'<div class="sec">OWNER</div><div class="row" data-act="owner">👑 <span>Owner Panel</span></div>':''}
+  <div class="sec"></div>
+  <button class="btn" data-act="logout" style="width:100%">Log out</button>`;
+}
+$('#drawer').addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'),a=e.target.closest('[data-act]'),ap=e.target.closest('[data-apply]');
+  if(g)goRoom(g.dataset.go);
+  else if(ap)applyStaff(ap.dataset.apply);
+  else if(a){
+    const k=a.dataset.act;
+    if(k==='live')openLive();
+    if(k==='owner')openOwner();
+    if(k==='logout')logout('');
+  }
+});
+function applyStaff(role){
+  const u=me();
+  if(role==='mod_light'&&(u.xp||0)<CFG.ML_XP){toast('Moderator Light needs 1,000,000 XP first.');return;}
+  if(DB.apps.some(a=>a.email===ME&&a.role===role)){toast('You already applied for this.');return;}
+  DB.apps.push({email:ME,role,ts:Date.now()});save();toast('Application sent to the owner.');
+}
+
+// ---------- calls ----------
+function startCall(){
+  const u=me(),now=Date.now();
+  if(CALL)return;
+  if(now<(u.cool||0)){toast('Call cooldown: '+fmt((u.cool-now)/1000)+' left');return;}
+  const limit=(u.callSecs||0)>0?u.callSecs:CFG.CALL_NORMAL;
+  CALL={start:now,limit};
+  $('#callLimit').textContent='Max '+fmt(limit)+((u.callSecs||0)>0?' (bought time)':' (no call time bought)');
+  $('#call').classList.add('on');tickCall();CALL.t=setInterval(tickCall,250);
+}
+function tickCall(){
+  if(!CALL)return;
+  const el=Math.floor((Date.now()-CALL.start)/1000),left=CALL.limit-el;
+  $('#callTime').textContent=fmt(Math.max(0,left));
+  if(left<=0)endCall(true);
+}
+function endCall(auto){
+  if(!CALL)return;
+  clearInterval(CALL.t);
+  const used=Math.min(CALL.limit,Math.floor((Date.now()-CALL.start)/1000));
+  const u=me();
+  if((u.callSecs||0)>0)u.callSecs=Math.max(0,u.callSecs-used);
+  u.calls=(u.calls||0)+1;u.cool=Date.now()+CFG.CALL_COOLDOWN*1000;
+  CALL=null;$('#call').classList.remove('on');save();
+  toast(auto?'Call cut: time limit reached. Cooldown 10 minutes.':'Call ended. Cooldown 10 minutes.');
+}
+
+// ---------- voice notes & camera ----------
+async function recStart(){
+  if(!canPost())return;
+  if(!navigator.mediaDevices||!window.MediaRecorder){toast('Voice notes need microphone support in this browser.');return;}
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});
+    RCH=[];const rec=new MediaRecorder(st);REC=rec;
+    rec.ondataavailable=ev=>RCH.push(ev.data);
+    rec.onstop=()=>{
+      st.getTracks().forEach(t=>t.stop());
+      const dur=Math.round((Date.now()-RS)/1000);
+      if(dur<1||!RCH.length)return;
+      const blob=new Blob(RCH,{type:rec.mimeType||'audio/webm'});
+      const m=add(ROOM,ME,'voice','',{dur});MEDIA[m.id]=URL.createObjectURL(blob);
+      save();renderChat();
+    };
+    RS=Date.now();rec.start();$('#mic').classList.add('rec');
+  }catch(err){toast('Microphone access was blocked.');}
+}
+function recStop(){$('#mic').classList.remove('rec');if(REC&&REC.state!=='inactive')REC.stop();REC=null;}
+
+// ---------- live ----------
+function startCam(){
+  if(LSTREAM||!navigator.mediaDevices)return;
+  navigator.mediaDevices.getUserMedia({video:true,audio:true}).then(s=>{LSTREAM=s;renderLive();}).catch(()=>toast('Camera not available. You will show as an avatar.'));
+}
+function stopCam(){if(LSTREAM){LSTREAM.getTracks().forEach(t=>t.stop());LSTREAM=null;}}
+function openLive(){$('#live').classList.add('on');renderLive();}
+function closeLive(){
+  $('#live').classList.remove('on');
+  const L=DB.live;
+  if(!(L&&(L.host===ME||L.joined.includes(ME))))stopCam();
+}
+function renderLive(){
+  const L=DB.live,st=isStaff(me());let h='';
+  if(!L){
+    h=st?'<p class="muted">Nobody is live. Start a LIVE and other members can tap Join.</p><button class="btn solid" id="goLive">Start LIVE</button>'
+        :'<p class="muted">Only Moderator Light, Moderator, Helper and Owner can start a LIVE.</p>';
+  }else{
+    const people=[L.host,...L.joined];
+    h=`<p class="muted">LIVE by <b>${esc(nm(L.host))}</b> · ${people.length} on screen</p><div class="grid">${people.map(e=>`<div class="tile" style="cursor:default">${e===ME&&LSTREAM?'<video id="selfCam" autoplay muted playsinline style="width:100%;border-radius:4px"></video>':`<img src="${(DB.users[e]&&DB.users[e].profile.pic)||''}" alt="" style="width:64px;height:64px;border-radius:50%;margin:auto;display:block">`}<b>${esc(nm(e))}</b></div>`).join('')}</div>`;
+    if(L.host===ME)h+='<button class="btn" id="endLive" style="margin-top:12px">End LIVE</button>';
+    else if(!L.joined.includes(ME))h+='<button class="btn solid" id="joinLive" style="margin-top:12px">Join</button>';
+    else h+='<button class="btn" id="leaveLive" style="margin-top:12px">Leave</button>';
+  }
+  $('#liveBody').innerHTML=h;
+  const sc=$('#selfCam');if(sc&&LSTREAM)sc.srcObject=LSTREAM;
+}
+function startLive(){if(!isStaff(me()))return;DB.live={host:ME,joined:[],started:Date.now()};save();startCam();renderLive();toast('You are LIVE');}
+function endLive(){DB.live=null;save();stopCam();renderLive();}
+function joinLive(){if(!DB.live)return;DB.live.joined.push(ME);save();startCam();renderLive();}
+function leaveLive(){if(!DB.live)return;DB.live.joined=DB.live.joined.filter(x=>x!==ME);save();stopCam();renderLive();}
+
+// ---------- owner panel & actions ----------
+function openOwner(){
+  if(ME!==OWNER)return;
+  openModal('OWNER PANEL',`<div class="tabs"><button class="btn" data-t="rep">Reports</button><button class="btn" data-t="app">Applications</button><button class="btn" data-t="usr">Users</button><button class="btn" data-t="ann">Announce</button></div><div id="ownBody"></div>`);
+  ownTab('rep');
+}
+function ownTab(t){
+  OWN_TAB=t;
+  $$('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  let h='';
+  if(t==='rep'){
+    h=DB.reports.length?DB.reports.map(r=>`<div class="row" style="display:block"><b>${esc(nm(r.reporter))}</b> reported <b>${esc(nm(r.target))}</b><div class="muted">"${esc(r.text)}"</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-x="rdis" data-k="${r.id}">Dismiss</button><button class="btn" data-x="rdel" data-k="${r.id}">Delete msg</button><button class="btn" data-x="rban" data-k="${r.id}">Ban</button></div></div>`).join(''):'<p class="muted">No reports.</p>';
+  }
+  if(t==='app'){
+    h=DB.apps.length?DB.apps.map((a,i)=>`<div class="row" style="display:block"><b>${esc(nm(a.email))}</b> applied for <b>${esc(ROLE_NAME[a.role])}</b><div style="margin-top:6px;display:flex;gap:6px"><button class="btn solid" data-x="approve" data-k="${i}">Approve</button><button class="btn" data-x="deny" data-k="${i}">Deny</button></div></div>`).join(''):'<p class="muted">No applications.</p>';
+  }
+  if(t==='usr'){
+    h=Object.values(DB.users).filter(u=>u.email!==OWNER).map(u=>`<div class="row" style="display:block"><b>${esc(nm(u.email))}</b> <span class="muted">${RANKS[rankIdx(u)][2]} ${RANKS[rankIdx(u)][0]}${u.banned?' · BANNED':''}</span><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><select data-role="${esc(u.email)}" style="width:auto"><option value="">No staff role</option>${Object.entries(ROLE_NAME).map(([k,n])=>`<option value="${k}" ${u.role===k?'selected':''}>${n}</option>`).join('')}</select><button class="btn" data-x="setRole" data-k="${esc(u.email)}">Set</button>${u.banned?`<button class="btn" data-x="unban" data-k="${esc(u.email)}">Unban</button>`:''}</div></div>`).join('')||'<p class="muted">No users yet.</p>';
+  }
+  if(t==='ann'){
+    h=`<textarea id="annTxt" rows="3" placeholder="Write a system announcement"></textarea><button class="btn solid" data-x="post" style="margin-top:8px;width:100%">Post announcement</button>`;
+  }
+  $('#ownBody').innerHTML=h;
+}
+function act(x,k){
+  if(x==='pm'){closeModal();goRoom(pkey(ME,k));return;}
+  if(x==='buyRank'){buyRank();return;}
+  if(x==='buyMin'){buyMin();return;}
+  if(x==='rdis')DB.reports=DB.reports.filter(r=>r.id!==k);
+  if(x==='rdel'){const r=DB.reports.find(z=>z.id===k);if(r){DB.msgs=DB.msgs.filter(m=>m.id!==r.msgId);DB.reports=DB.reports.filter(z=>z.id!==k);}}
+  if(x==='rban'){const r=DB.reports.find(z=>z.id===k);if(r&&r.target!==OWNER&&DB.users[r.target])DB.users[r.target].banned=true;}
+  if(x==='approve'){const a=DB.apps[+k];if(a&&DB.users[a.email]){DB.users[a.email].role=a.role;DB.apps.splice(+k,1);}}
+  if(x==='deny')DB.apps.splice(+k,1);
+  if(x==='setRole'){const v=document.querySelector(`[data-role="${k}"]`).value;DB.users[k].role=v;}
+  if(x==='unban'&&DB.users[k])DB.users[k].banned=false;
+  if(x==='post'){const t=$('#annTxt').value.trim();if(t)DB.ann.unshift({id:uid(),t,ts:Date.now()});}
+  save();
+  if($('#ownBody'))ownTab(OWN_TAB);
+}
+
+// ---------- sync across tabs & kick/ban ----------
+function refreshAll(){
+  if(!ME)return;
+  const u=me();
+  if(!u){logout('');return;}
+  if(u.banned||u.kicked){const b=u.banned;u.kicked=false;save();logout(b?'This account is banned.':'You were removed from the session by staff.');return;}
+  if($('#chat').classList.contains('on'))renderChat();
+  if($('#home').classList.contains('on'))renderHome();
+  if($('#drawer').classList.contains('on'))renderDrawer();
+  if($('#live').classList.contains('on'))renderLive();
+}
+window.addEventListener('storage',e=>{
+  if(e.key===KEY&&e.newValue){try{DB=JSON.parse(e.newValue);}catch(_){return;}refreshAll();}
+});
+
+// ---------- wiring ----------
+$('#lBtn').onclick=doLogin;
+$('#lPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+$('#sPic').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{PIC=r.result;$('#sPrev').src=PIC;$('#sPrev').style.visibility='visible';};r.readAsDataURL(f);};
+$('#sSave').onclick=saveSetup;
+$('#sBack').onclick=()=>show('home');
+$('#backBtn').onclick=()=>show('home');
+$('#sendBtn').onclick=send;
+$('#inp').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+$('#camBtn').onclick=()=>$('#cam').click();
+$('#cam').onchange=e=>{
+  const f=e.target.files[0];e.target.value='';
+  if(!f||!canPost())return;
+  if(f.type.startsWith('video/')){
+    const m=add(ROOM,ME,'video','');MEDIA[m.id]=URL.createObjectURL(f);
+    earn(CFG.XP_VID);save();renderChat();return;
+  }
+  const r=new FileReader();
+  r.onload=()=>{const data=r.result;const m=add(ROOM,ME,'image','',{data:data.length<300000?data:null});MEDIA[m.id]=data;save();renderChat();};
+  r.readAsDataURL(f);
+};
+$('#callBtn').onclick=startCall;
+$('#endCallBtn').onclick=()=>endCall(false);
+const mic=$('#mic');
+mic.addEventListener('pointerdown',e=>{e.preventDefault();recStart();});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>mic.addEventListener(ev,recStop));
+$('#menuBtn').onclick=e=>{
+  e.stopPropagation();
+  const r=e.currentTarget.getBoundingClientRect();
+  const items=ROOM.startsWith('p:')
+    ?[['View Profile',()=>viewProfile(otherOf(ROOM))],['Leave chat',()=>show('home')]]
+    :[['Group Info',()=>openModal('XFORD · GROUP INFO',groupInfoHTML())],['Exit Group',()=>{toast('You left XFORD.');show('home');},1]];
+  showPop(r.left-160,r.bottom+4,items);
+};
+$('#msgs').addEventListener('pointerdown',e=>{
+  const b=e.target.closest('.bubble');if(!b)return;
+  PM=b.dataset.id;const x=e.clientX,y=e.clientY;
+  clearTimeout(PT);PT=setTimeout(()=>{PT=null;msgMenu(PM,x,y);},500);
+});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>$('#msgs').addEventListener(ev,()=>{clearTimeout(PT);PT=null;}));
+$('#msgs').addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#pop'))hidePop();});
+document.addEventListener('click',e=>{if(e.target.closest('.menuB'))openDrawer();});
+$('#scrim').onclick=closeDrawer;
+$('#mClose').onclick=closeModal;
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+$('#mBody').addEventListener('click',e=>{
+  const t=e.target.closest('[data-t],[data-x],[data-open],[data-view]');if(!t)return;
+  if(t.dataset.t){ownTab(t.dataset.t);return;}
+  if(t.dataset.open){closeModal();goRoom(t.dataset.open);return;}
+  if(t.dataset.view){viewProfile(t.dataset.view);return;}
+  act(t.dataset.x,t.dataset.k);
+});
+$('#liveClose').onclick=closeLive;
+$('#live').addEventListener('click',e=>{if(e.target.id==='live')closeLive();});
+$('#liveBody').addEventListener('click',e=>{
+  const id=e.target.id;
+  if(id==='goLive')startLive();
+  if(id==='endLive')endLive();
+  if(id==='joinLive')joinLive();
+  if(id==='leaveLive')leaveLive();
+});
+$('#homeCard').addEventListener('click',e=>{
+  if(e.target.closest('#editBtn')){show('setup');fillSetup();}
+  if(e.target.closest('#homeChat'))goRoom('general');
+});
+$('#homeTiles').addEventListener('click',e=>{
+  const t=e.target.closest('[data-tile]');if(!t)return;
+  const k=t.dataset.tile;
+  if(k==='chat')goRoom('general');
+  if(k==='pm')openModal('PRIVATE MESSAGE',privHTML());
+  if(k==='ann')openModal('SYSTEM ANNOUNCEMENT',annHTML());
+  if(k==='inv')openModal('INVENTORY / WEAPONS',invHTML());
+  if(k==='task')openModal('TASK / MISSION',taskHTML());
+  if(k==='bag')openModal('BACKPACK / STORAGE',bagHTML());
+});
+
+// ---------- boot ----------
+function boot(){
+  load();
+  const s=localStorage.getItem(SESS);
+  ME=(s&&DB.users[s])?s:null;
+  let msg='';
+  if(ME){
+    const u=me();
+    if(u.banned||u.kicked){msg=u.banned?'This account is banned.':'You were removed from the session by staff.';u.kicked=false;save();ME=null;localStorage.removeItem(SESS);}
+  }
+  route();
+  if(msg)$('#lErr').textContent=msg;
+  clock();setInterval(clock,1000);
+}
+boot();
+</script>
+</body>
+</html>
